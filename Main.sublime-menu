@@ -1,0 +1,28 @@
+[
+	{
+		"id": "selection",
+		"children":
+		[
+			{ "caption": "-" },
+			{ "caption": "Plumb", "command": "plumb" }
+		]
+	},
+	{
+		"id": "preferences",
+		"children": [
+			{
+				"id": "package-settings",
+				"children":
+				[
+					{
+						"caption": "Plumbing",
+						"children":
+						[
+							{ "caption": "Edit Plumbing Rules", "command": "edit_plumbing" }
+						]
+					}
+				]
+			}
+		]
+	}
+]

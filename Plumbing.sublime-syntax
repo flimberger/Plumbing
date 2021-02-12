@@ -1,0 +1,111 @@
+%YAML 1.2
+---
+name: Plumbing
+file_extensions:
+  - plumbing
+scope: source.plumbing
+variables:
+  action_objects: \b(?:plumb)\b
+  action_verbs: \b(?:client|start|to)\b
+  common_ports: \b(?:edit|image|postscript|(see|send|show)mail|web)\b
+  include: \b(?:include)\b
+  pattern_objects: \b(?:arg|attr|data|dst|src|type)\b
+  pattern_types: \b(?:text)\b
+  pattern_verbs: \b(?:add|is(?:file)?|matches|set)\b
+  special_ports: \b(?:none)\b
+  variable_name: (?:[[:alpha:]_][[:alnum:]_]*)
+  builtin_vars: (?:\d+|attr|data|dir|dst|file|type|src|wdir)
+contexts:
+  main:
+    - include: comments
+    # Include keyword
+    - match: '{{include}}'
+      scope: keyword.control.import.plumbing
+      push: include_line
+    # Rules consist of actions and patterns.
+    # The "objects" differing between pattern and action are marked as constants and functions;
+    # this is not semantically correct though,
+    # as the entities are usually user-defined,
+    # but otherwise the result is a soup of keywords in a single color.
+    - match: '{{pattern_objects}}'
+      scope: entity.name.constant.plumbing
+      push:
+        - pattern_rule
+    - match: '{{action_objects}}'
+      scope: entity.name.function.plumbing
+      push:
+        - action_rule
+    # Assignments
+    # TODO: how are strings handled on the rhs?
+    - match: '({{variable_name}})\s+(=)\s+(\w+)'
+      captures:
+        1: variable.other.plumbing
+        2: keyword.operator.assignment.plumbing
+        3: string.unquoted.plumbing
+
+  comments:
+    # Comments begin with a '#' and finish at the end of the line
+    - match: \#
+      scope: punctuation.definition.comment.plumbing
+      push:
+        - meta_scope: comment.line.number-sign.plumbing
+        - match: $
+          pop: true
+
+  # This is buggy, as it accepts more than a single word
+  include_line:
+    # The /sys/lib/plumb/basic file
+    - match: '\b(basic)\b'
+      scope: support.constant.plumbing
+    # Anything else is treated as a string
+    - match: '\w+'
+      scope: string.unquoted.plumbing
+    - match: $
+      pop: true
+
+  # Common definitions for rules
+  rule:
+    # Comments
+    - include: comments
+    # Strings
+    - match: "'"
+      scope: punctuation.definition.string.begin.plumbing
+      push: string
+    # Variables, either numbered ($0) or named ($foo)
+    - match: '(\$)(\d+|{{variable_name}})'
+      captures:
+        0: variable.parameter.plumbing
+        1: punctuation.definition.variable.plumbing
+    # Common plumber ports provided by the system
+    - match: '{{common_ports}}'
+      scope: support.constant.plumbing
+    - match: $
+      pop: true
+
+  pattern_rule:
+    - meta_scope: meta.rule.pattern.plumbing
+    - include: rule
+    - match: '{{pattern_verbs}}'
+      scope: keyword.operator.word.plumbing
+    - match: '{{pattern_types}}'
+      scope: constant.language.plumbing
+    - match: $
+      pop: true
+
+  action_rule:
+    - meta_scope: meta.rule.action.plumbing
+    - include: rule
+    - match: '{{action_verbs}}'
+      scope: keyword.other.plumbing
+    - match: '{{special_ports}}'
+      scope: constant.language.plumbing
+    - match: $
+      pop: true
+
+  string:
+    - meta_scope: string.quoted.single.plumbing
+    - match: '\\.'
+      scope: constant.character.escape.plumbing
+    - match: "'"
+      scope: punctuation.definition.string.end.plumbing
+      pop: true

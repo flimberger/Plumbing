@@ -1,0 +1,4 @@
+[
+	{ "caption": "Plumb Selection", "command": "plumb" },
+	{ "caption": "Edit Plumbing Rules", "command": "edit_plumbing" }
+]
